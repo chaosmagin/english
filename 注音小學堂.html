@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>注音小學堂</title>
+<style>
+  :root {
+    --bg: #fff8e7;
+    --card: #ffffff;
+    --border: #f0d9a8;
+    --text: #2b2b2b;
+    --muted: #8a7a5a;
+    --accent: #ff8a3d;
+    --accent-text: #ffffff;
+    --chip: #ffefc7;
+    --chip-text: #5a4a1a;
+    --btn-dark: #2b2b2b;
+    --btn-dark-text: #ffffff;
+    --btn-light: #ffe3a8;
+    --btn-light-text: #4a3a10;
+    --choice: #ffffff;
+    --choice-border: #f0d9a8;
+    --ok: #2e9e5b;
+    --ok-bg: #d9f5e3;
+    --bad: #d6453d;
+    --bad-bg: #fde0de;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #221d12;
+      --card: #2f281a;
+      --border: #4a3f26;
+      --text: #f5efe0;
+      --muted: #b3a47f;
+      --accent: #ff9d57;
+      --accent-text: #2a1a08;
+      --chip: #3d3420;
+      --chip-text: #f5e6b8;
+      --btn-dark: #f5efe0;
+      --btn-dark-text: #221d12;
+      --btn-light: #4a3f26;
+      --btn-light-text: #f5e6b8;
+      --choice: #2f281a;
+      --choice-border: #4a3f26;
+      --ok: #5cd08a;
+      --ok-bg: #1e3a2a;
+      --bad: #ff7a72;
+      --bad-bg: #4a2422;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #221d12;
+    --card: #2f281a;
+    --border: #4a3f26;
+    --text: #f5efe0;
+    --muted: #b3a47f;
+    --accent: #ff9d57;
+    --accent-text: #2a1a08;
+    --chip: #3d3420;
+    --chip-text: #f5e6b8;
+    --btn-dark: #f5efe0;
+    --btn-dark-text: #221d12;
+    --btn-light: #4a3f26;
+    --btn-light-text: #f5e6b8;
+    --choice: #2f281a;
+    --choice-border: #4a3f26;
+    --ok: #5cd08a;
+    --ok-bg: #1e3a2a;
+    --bad: #ff7a72;
+    --bad-bg: #4a2422;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif;
+  }
+  .app {
+    width: min(94vw, 680px);
+    text-align: center;
+    padding: 18px 0 28px;
+  }
+  h1 { margin: 4px 0 16px; font-size: 28px; }
+
+  .tabs, .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .tab {
+    background: var(--btn-light);
+    color: var(--btn-light-text);
+    padding: 10px 16px;
+    font-size: 17px;
+  }
+  .tab.active { background: var(--accent); color: var(--accent-text); }
+  .chip {
+    background: var(--chip);
+    color: var(--chip-text);
+    padding: 6px 14px;
+    font-size: 15px;
+    border-radius: 999px;
+  }
+  .chip.active { background: var(--btn-dark); color: var(--btn-dark-text); }
+
+  .card {
+    min-height: 400px;
+    background: var(--card);
+    border: 3px solid var(--border);
+    border-radius: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    margin: 4px 0 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card.no-tap { cursor: default; }
+  #main {
+    font-weight: bold;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 5vw, 36px);
+  }
+  #main.symbol { font-size: clamp(150px, 30vw, 240px); }
+  #main.zy { font-size: clamp(56px, 13vw, 80px); }
+  #main.char .the-char { font-size: clamp(110px, 24vw, 170px); }
+  #main.char .zy-side { font-size: clamp(40px, 10vw, 56px); }
+
+  /* 注音上下排列:符號由上往下疊,聲調在右側,輕聲點在上方 */
+  .zy-v {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+  }
+  .zy-dot { font-size: 0.7em; line-height: 0.7; height: 0.5em; }
+  .zy-body {
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 0;
+    justify-items: center;
+    align-items: start;
+  }
+  .zy-sym { grid-column: 1; line-height: 1.08; }
+  .zy-tone { grid-column: 2; font-size: 0.85em; line-height: 1; margin-left: -0.16em; }
+  #sub {
+    margin-top: 10px;
+    min-height: 56px;
+    font-size: 22px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  #sub .big { font-size: clamp(48px, 11vw, 68px); font-weight: bold; color: var(--text); line-height: 1.1; }
+  #sub .ok { color: var(--ok); font-weight: bold; }
+  #sub .bad { color: var(--bad); font-weight: bold; }
+
+  .choices {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .choice {
+    background: var(--choice);
+    color: var(--text);
+    border: 3px solid var(--choice-border);
+    min-width: 92px;
+    padding: 10px 12px;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+  .choice small { display: block; font-size: 22px; color: var(--muted); height: 26px; }
+  .choice.ok { background: var(--ok-bg); border-color: var(--ok); }
+  .choice.bad { background: var(--bad-bg); border-color: var(--bad); }
+  .choice:disabled { cursor: default; }
+
+  .buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  button {
+    border: 0;
+    border-radius: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 14px 24px;
+    font-size: 18px;
+  }
+  #next { background: var(--btn-dark); color: var(--btn-dark-text); }
+  #reveal { background: var(--accent); color: var(--accent-text); }
+  #speak { background: var(--btn-light); color: var(--btn-light-text); }
+  .hidden { display: none !important; }
+  .hint { color: var(--muted); margin-top: 16px; font-size: 15px; min-height: 22px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>注音小學堂</h1>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="chips" id="chips"></div>
+
+  <div class="card" id="card">
+    <div id="main"></div>
+    <div id="sub"></div>
+  </div>
+
+  <div class="choices hidden" id="choices"></div>
+
+  <div class="buttons">
+    <button id="next">下一題</button>
+    <button id="reveal" class="hidden">看答案</button>
+    <button id="speak" class="hidden">🔊 聽聽看</button>
+  </div>
+
+  <div class="hint" id="hint"></div>
+</div>
+
+<script>
+// ===== 資料 =====
+const INITIALS = Array.from("ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ"); // 聲母 21 個
+const FINALS   = Array.from("ㄧㄨㄩㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ");         // 韻母(含介音)16 個
+
+// [分類, 字, 注音]
+const WORDS = [
+  // 數字
+  ["數字","一","ㄧ"], ["數字","二","ㄦˋ"], ["數字","三","ㄙㄢ"], ["數字","四","ㄙˋ"],
+  ["數字","五","ㄨˇ"], ["數字","六","ㄌㄧㄡˋ"], ["數字","七","ㄑㄧ"], ["數字","八","ㄅㄚ"],
+  ["數字","九","ㄐㄧㄡˇ"], ["數字","十","ㄕˊ"],
+  // 家人
+  ["家人","爸","ㄅㄚˋ"], ["家人","媽","ㄇㄚ"], ["家人","哥","ㄍㄜ"], ["家人","姐","ㄐㄧㄝˇ"],
+  ["家人","弟","ㄉㄧˋ"], ["家人","妹","ㄇㄟˋ"], ["家人","爺","ㄧㄝˊ"], ["家人","奶","ㄋㄞˇ"],
+  ["家人","我","ㄨㄛˇ"], ["家人","你","ㄋㄧˇ"], ["家人","他","ㄊㄚ"], ["家人","人","ㄖㄣˊ"],
+  // 身體
+  ["身體","頭","ㄊㄡˊ"], ["身體","手","ㄕㄡˇ"], ["身體","腳","ㄐㄧㄠˇ"], ["身體","眼","ㄧㄢˇ"],
+  ["身體","耳","ㄦˇ"], ["身體","口","ㄎㄡˇ"], ["身體","鼻","ㄅㄧˊ"], ["身體","心","ㄒㄧㄣ"],
+  ["身體","牙","ㄧㄚˊ"], ["身體","臉","ㄌㄧㄢˇ"],
+  // 顏色
+  ["顏色","紅","ㄏㄨㄥˊ"], ["顏色","黃","ㄏㄨㄤˊ"], ["顏色","藍","ㄌㄢˊ"], ["顏色","綠","ㄌㄩˋ"],
+  ["顏色","白","ㄅㄞˊ"], ["顏色","黑","ㄏㄟ"], ["顏色","紫","ㄗˇ"],
+  // 動物
+  ["動物","狗","ㄍㄡˇ"], ["動物","貓","ㄇㄠ"], ["動物","魚","ㄩˊ"], ["動物","鳥","ㄋㄧㄠˇ"],
+  ["動物","牛","ㄋㄧㄡˊ"], ["動物","羊","ㄧㄤˊ"], ["動物","馬","ㄇㄚˇ"], ["動物","豬","ㄓㄨ"],
+  ["動物","雞","ㄐㄧ"], ["動物","鴨","ㄧㄚ"], ["動物","兔","ㄊㄨˋ"], ["動物","蟲","ㄔㄨㄥˊ"],
+  ["動物","象","ㄒㄧㄤˋ"], ["動物","蛇","ㄕㄜˊ"], ["動物","虎","ㄏㄨˇ"],
+  // 大自然
+  ["大自然","日","ㄖˋ"], ["大自然","月","ㄩㄝˋ"], ["大自然","山","ㄕㄢ"], ["大自然","水","ㄕㄨㄟˇ"],
+  ["大自然","火","ㄏㄨㄛˇ"], ["大自然","木","ㄇㄨˋ"], ["大自然","花","ㄏㄨㄚ"], ["大自然","草","ㄘㄠˇ"],
+  ["大自然","樹","ㄕㄨˋ"], ["大自然","雨","ㄩˇ"], ["大自然","雲","ㄩㄣˊ"], ["大自然","風","ㄈㄥ"],
+  ["大自然","星","ㄒㄧㄥ"], ["大自然","天","ㄊㄧㄢ"], ["大自然","土","ㄊㄨˇ"], ["大自然","石","ㄕˊ"],
+  // 生活
+  ["生活","書","ㄕㄨ"], ["生活","筆","ㄅㄧˇ"], ["生活","門","ㄇㄣˊ"], ["生活","車","ㄔㄜ"],
+  ["生活","家","ㄐㄧㄚ"], ["生活","學","ㄒㄩㄝˊ"], ["生活","飯","ㄈㄢˋ"], ["生活","米","ㄇㄧˇ"],
+  ["生活","茶","ㄔㄚˊ"], ["生活","蛋","ㄉㄢˋ"], ["生活","果","ㄍㄨㄛˇ"], ["生活","球","ㄑㄧㄡˊ"],
+  ["生活","鞋","ㄒㄧㄝˊ"], ["生活","帽","ㄇㄠˋ"], ["生活","衣","ㄧ"], ["生活","床","ㄔㄨㄤˊ"],
+  ["生活","燈","ㄉㄥ"], ["生活","刀","ㄉㄠ"], ["生活","傘","ㄙㄢˇ"], ["生活","船","ㄔㄨㄢˊ"],
+  // 動作與常用
+  ["動作與常用","吃","ㄔ"], ["動作與常用","喝","ㄏㄜ"], ["動作與常用","看","ㄎㄢˋ"], ["動作與常用","走","ㄗㄡˇ"],
+  ["動作與常用","跑","ㄆㄠˇ"], ["動作與常用","玩","ㄨㄢˊ"], ["動作與常用","睡","ㄕㄨㄟˋ"], ["動作與常用","笑","ㄒㄧㄠˋ"],
+  ["動作與常用","哭","ㄎㄨ"], ["動作與常用","飛","ㄈㄟ"], ["動作與常用","愛","ㄞˋ"], ["動作與常用","開","ㄎㄞ"],
+  ["動作與常用","來","ㄌㄞˊ"], ["動作與常用","去","ㄑㄩˋ"], ["動作與常用","大","ㄉㄚˋ"], ["動作與常用","小","ㄒㄧㄠˇ"],
+  ["動作與常用","上","ㄕㄤˋ"], ["動作與常用","下","ㄒㄧㄚˋ"], ["動作與常用","好","ㄏㄠˇ"],
+  ["動作與常用","的","˙ㄉㄜ"], ["動作與常用","了","˙ㄌㄜ"], ["動作與常用","嗎","˙ㄇㄚ"], ["動作與常用","呢","˙ㄋㄜ"]
+].map(([cat, ch, zy]) => ({ cat, ch, zy, tone: toneOf(zy) }));
+
+function toneOf(zy) {
+  if (zy.startsWith("˙")) return 5;
+  const last = zy[zy.length - 1];
+  if (last === "ˊ") return 2;
+  if (last === "ˇ") return 3;
+  if (last === "ˋ") return 4;
+  return 1;
+}
+
+// 把注音排成上下直排:符號由上往下疊,聲調在最後一個符號的右上角,輕聲點在最上方
+function zyV(zy) {
+  let dot = false, tone = "", syms = zy;
+  if (zy.startsWith("˙")) { dot = true; syms = zy.slice(1); }
+  else if ("ˊˇˋ".includes(zy[zy.length - 1])) { tone = zy[zy.length - 1]; syms = zy.slice(0, -1); }
+  const arr = Array.from(syms);
+  let html = '<span class="zy-v">';
+  if (dot) html += '<span class="zy-dot">˙</span>';
+  html += '<span class="zy-body">';
+  arr.forEach((c, i) => { html += '<span class="zy-sym" style="grid-row:' + (i + 1) + '">' + c + "</span>"; });
+  if (tone) html += '<span class="zy-tone" style="grid-row:' + arr.length + '">' + tone + "</span>";
+  html += "</span></span>";
+  return html;
+}
+
+const CATS = ["全部", ...Array.from(new Set(WORDS.map(w => w.cat)))];
+const TONE_LABELS = [
+  { n: 1, name: "一聲", mark: "無" },
+  { n: 2, name: "二聲", mark: "ˊ" },
+  { n: 3, name: "三聲", mark: "ˇ" },
+  { n: 4, name: "四聲", mark: "ˋ" },
+  { n: 5, name: "輕聲", mark: "˙" }
+];
+const MODES = [
+  { id: "symbol", name: "認識符號" },
+  { id: "tone",   name: "聲調練習" },
+  { id: "see",    name: "看字想注音" },
+  { id: "hear",   name: "看注音想字" }
+];
+const SYMBOL_FILTERS = [
+  { id: "all", name: "全部" },
+  { id: "initial", name: "聲母" },
+  { id: "final", name: "韻母" }
+];
+
+// ===== 狀態 =====
+let mode = "symbol";
+let symbolFilter = "all";
+let catFilter = "全部";
+let current = null;     // 符號(字串)或字詞物件
+let revealed = false;   // see / hear 是否已翻開
+let answered = false;   // tone 是否已作答
+let chosen = 0;
+let score = { right: 0, total: 0 };
+let lastKey = "";
+
+// ===== 元素 =====
+const $ = id => document.getElementById(id);
+const tabsEl = $("tabs"), chipsEl = $("chips"), cardEl = $("card");
+const mainEl = $("main"), subEl = $("sub"), choicesEl = $("choices");
+const nextBtn = $("next"), revealBtn = $("reveal"), speakBtn = $("speak");
+const hintEl = $("hint");
+
+const canSpeak = "speechSynthesis" in window;
+
+// ===== 工具 =====
+function symbolPool() {
+  if (symbolFilter === "initial") return INITIALS;
+  if (symbolFilter === "final") return FINALS;
+  return [...INITIALS, ...FINALS];
+}
+function wordPool() {
+  return catFilter === "全部" ? WORDS : WORDS.filter(w => w.cat === catFilter);
+}
+function pick(pool) {
+  let item, key, tries = 0;
+  do {
+    item = pool[Math.floor(Math.random() * pool.length)];
+    key = typeof item === "string" ? item : item.ch;
+    tries++;
+  } while (key === lastKey && pool.length > 1 && tries < 20);
+  lastKey = key;
+  return item;
+}
+function speak(text) {
+  if (!canSpeak) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "zh-TW";
+  u.rate = 0.8;
+  speechSynthesis.speak(u);
+}
+
+// ===== 出題 =====
+function newQuestion() {
+  revealed = false;
+  answered = false;
+  chosen = 0;
+  current = mode === "symbol" ? pick(symbolPool()) : pick(wordPool());
+  render();
+}
+
+// ===== 畫面 =====
+function renderTabs() {
+  tabsEl.innerHTML = "";
+  MODES.forEach(m => {
+    const b = document.createElement("button");
+    b.className = "tab" + (m.id === mode ? " active" : "");
+    b.textContent = m.name;
+    b.onclick = () => { mode = m.id; score = { right: 0, total: 0 }; lastKey = ""; newQuestion(); };
+    tabsEl.appendChild(b);
+  });
+}
+
+function renderChips() {
+  chipsEl.innerHTML = "";
+  const items = mode === "symbol"
+    ? SYMBOL_FILTERS.map(f => ({ id: f.id, name: f.name, active: f.id === symbolFilter }))
+    : CATS.map(c => ({ id: c, name: c, active: c === catFilter }));
+  items.forEach(it => {
+    const b = document.createElement("button");
+    b.className = "chip" + (it.active ? " active" : "");
+    b.textContent = it.name;
+    b.onclick = () => {
+      if (mode === "symbol") symbolFilter = it.id; else catFilter = it.id;
+      lastKey = "";
+      newQuestion();
+    };
+    chipsEl.appendChild(b);
+  });
+}
+
+function renderChoices() {
+  choicesEl.innerHTML = "";
+  TONE_LABELS.forEach(t => {
+    const b = document.createElement("button");
+    let cls = "choice";
+    if (answered) {
+      if (t.n === current.tone) cls += " ok";
+      else if (t.n === chosen) cls += " bad";
+    }
+    b.className = cls;
+    b.disabled = answered;
+    b.innerHTML = t.name + "<small>" + t.mark + "</small>";
+    b.onclick = () => answerTone(t.n);
+    choicesEl.appendChild(b);
+  });
+}
+
+function answerTone(n) {
+  if (answered) return;
+  answered = true;
+  chosen = n;
+  score.total++;
+  if (n === current.tone) score.right++;
+  render();
+  if (canSpeak) speak(current.ch);
+}
+
+function render() {
+  renderTabs();
+  renderChips();
+
+  // 預設
+  mainEl.className = "";
+  mainEl.innerHTML = "";
+  subEl.innerHTML = "";
+  choicesEl.classList.add("hidden");
+  revealBtn.classList.add("hidden");
+  speakBtn.classList.add("hidden");
+  cardEl.classList.remove("no-tap");
+  hintEl.textContent = "";
+
+  if (mode === "symbol") {
+    mainEl.className = "symbol";
+    mainEl.textContent = current;
+    cardEl.classList.add("no-tap");
+    nextBtn.textContent = "下一題";
+    hintEl.textContent = "按空白鍵也可以出下一題";
+  }
+
+  else if (mode === "tone") {
+    mainEl.className = "zy";
+    mainEl.innerHTML = zyV(current.zy);
+    cardEl.classList.add("no-tap");
+    choicesEl.classList.remove("hidden");
+    renderChoices();
+    nextBtn.textContent = "下一題";
+    if (answered) {
+      const right = chosen === current.tone;
+      const name = TONE_LABELS[current.tone - 1].name;
+      subEl.innerHTML =
+        '<span class="big">' + current.ch + "</span>" +
+        '<span class="' + (right ? "ok" : "bad") + '">' +
+        (right ? "答對了!" : "是" + name + "喔") + "</span>";
+      if (canSpeak) speakBtn.classList.remove("hidden");
+    } else {
+      subEl.innerHTML = "<span>這是第幾聲呢?</span>";
+    }
+    hintEl.textContent = "答對 " + score.right + " / " + score.total + "　(鍵盤 1~5 也可以作答)";
+  }
+
+  else if (mode === "see") {
+    mainEl.className = "char";
+    mainEl.innerHTML = '<span class="the-char">' + current.ch + "</span>" +
+      (revealed ? '<span class="zy-side">' + zyV(current.zy) + "</span>" : "");
+    nextBtn.textContent = "下一題";
+    if (revealed) {
+      subEl.innerHTML = "";
+    } else {
+      subEl.innerHTML = "<span>想一想怎麼念,再點一下看答案</span>";
+      revealBtn.classList.remove("hidden");
+    }
+    if (canSpeak && revealed) speakBtn.classList.remove("hidden");
+  }
+
+  else if (mode === "hear") {
+    mainEl.className = "zy";
+    mainEl.innerHTML = zyV(current.zy);
+    nextBtn.textContent = "下一題";
+    if (revealed) {
+      subEl.innerHTML = '<span class="big">' + current.ch + "</span>";
+    } else {
+      subEl.innerHTML = "<span>想一想是哪個字,再點一下看答案</span>";
+      revealBtn.classList.remove("hidden");
+    }
+    if (canSpeak) speakBtn.classList.remove("hidden");
+  }
+}
+
+// ===== 事件 =====
+nextBtn.onclick = newQuestion;
+revealBtn.onclick = doReveal;
+speakBtn.onclick = () => { if (mode !== "symbol") speak(current.ch); };
+cardEl.onclick = () => {
+  if (mode === "see" || mode === "hear") {
+    if (!revealed) doReveal();
+  }
+};
+
+function doReveal() {
+  if (revealed) return;
+  revealed = true;
+  render();
+  if (canSpeak && mode === "see") speak(current.ch);
+}
+
+// 按鈕按完就取消焦點,避免空白鍵重複觸發
+document.addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (b) b.blur();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    e.preventDefault();
+    if (mode === "symbol") newQuestion();
+    else if (mode === "tone") { if (answered) newQuestion(); }
+    else { if (!revealed) doReveal(); else newQuestion(); }
+  } else if (mode === "tone" && !answered && /^[1-5]$/.test(e.key)) {
+    answerTone(Number(e.key));
+  }
+});
+
+newQuestion();
+</script>
+</body>
+</html>

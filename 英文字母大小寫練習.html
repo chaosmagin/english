@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英文字母大小寫練習</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    font-family: Arial, "Microsoft JhengHei", sans-serif;
+  }
+  .app {
+    width: min(92vw, 650px);
+    text-align: center;
+  }
+  h1 { margin-bottom: 24px; }
+  .letter-box {
+    height: 320px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  #letter {
+    font-size: clamp(150px, 30vw, 240px);
+    font-weight: bold;
+    line-height: 1;
+    user-select: none;
+  }
+  .buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  button {
+    border: 0;
+    border-radius: 14px;
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #next { background: #222; color: white; }
+  #mode { background: #e8e8e8; color: #222; min-width: 180px; }
+  .hint { color: #777; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>英文字母大小寫練習</h1>
+
+  <div class="letter-box">
+    <div id="letter">A</div>
+  </div>
+
+  <div class="buttons">
+    <button id="next">下一題</button>
+    <button id="mode">模式：大寫</button>
+  </div>
+
+  <div class="hint">按空白鍵也可以出下一題</div>
+</div>
+
+<script>
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const letterEl = document.getElementById("letter");
+const nextBtn = document.getElementById("next");
+const modeBtn = document.getElementById("mode");
+
+let mode = 0;
+// 0 = 大寫、1 = 小寫、2 = 混合
+
+function nextLetter() {
+  const index = Math.floor(Math.random() * letters.length);
+  let letter = letters[index];
+
+  if (mode === 1) {
+    letter = letter.toLowerCase();
+  } else if (mode === 2) {
+    letter = Math.random() < 0.5
+      ? letter.toUpperCase()
+      : letter.toLowerCase();
+  }
+
+  letterEl.textContent = letter;
+}
+
+function changeMode() {
+  mode = (mode + 1) % 3;
+
+  if (mode === 0) {
+    modeBtn.textContent = "模式：大寫";
+  } else if (mode === 1) {
+    modeBtn.textContent = "模式：小寫";
+  } else {
+    modeBtn.textContent = "模式：混合";
+  }
+
+  nextLetter();
+}
+
+nextBtn.addEventListener("click", nextLetter);
+modeBtn.addEventListener("click", changeMode);
+
+document.addEventListener("keydown", function(event) {
+  if (event.code === "Space") {
+    event.preventDefault();
+    nextLetter();
+  }
+});
+
+nextLetter();
+</script>
+</body>
+</html>
